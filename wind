@@ -1,0 +1,9 @@
+const windLayer = L.tileLayer(
+  "https://tile.open-meteo.com/v1/wind/{z}/{x}/{y}.png",
+  {
+    opacity: 0.6,
+    attribution: "Wind data © Open-Meteo"
+  }
+);
+
+windLayer.addTo(map);
