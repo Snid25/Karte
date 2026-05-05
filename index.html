@@ -1,9 +1,8 @@
-console.log("SCRIPT LÄUFT");
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Meine Karte</title>
+  <title>Karte mit Gebiet</title>
 
   <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -18,13 +17,14 @@ console.log("SCRIPT LÄUFT");
 </head>
 
 <body>
+
 <div id="map"></div>
 
 <script>
-  // 🌍 Karte erstellen
+  // 🗺️ Karte erstellen
   const map = L.map('map').setView([48.5, 11.5], 8);
 
-  // 🗺️ OpenStreetMap Hintergrund
+  // 🌍 Hintergrundkarte (OpenStreetMap)
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap'
   }).addTo(map);
@@ -40,37 +40,13 @@ console.log("SCRIPT LÄUFT");
           fillOpacity: 0.3
         }
       }).addTo(map);
-    });
-    L.circle([48.5, 11.5], {
-      radius: 50000,
-      color: "blue"
-}).addTo(map);
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  opacity: 0.3
-}).addTo(map);
-const windLayer = L.tileLayer(
-  "https://tile.open-meteo.com/v1/wind/{z}/{x}/{y}.png",
-  {
-    opacity: 0.6,
-    attribution: "Wind data © Open-Meteo"
-  }
-);
+    })
+    .catch(err => console.error("GeoJSON Fehler:", err));
 
-windLayer.addTo(map);
+  // 🧪 TEST (zeigt, ob Code läuft)
+  console.log("Karte läuft");
+
 </script>
 
 </body>
-</html>fetch('gebiet.geojson')
-  .then(r => r.text())
-  .then(t => console.log("DATEI:", t))
-  .catch(e => console.log("FEHLER:", e));
-console.log("Script läuft");
-fetch('gebiet.geojson')
-  .then(r => {
-    console.log("GeoJSON Status:", r.status);
-    return r.json();
-  })
-  .then(data => {
-    console.log("GeoJSON geladen:", data);
-  })
-  .catch(err => console.log("FEHLER:", err));
+</html>
