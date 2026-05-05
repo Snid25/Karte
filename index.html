@@ -1,44 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Karte mit Gebiet</title>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    #map {
+      height: 100vh;
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="map"></div>
+
 <script>
-console.log("Karte geladen ✔");
 
-const map = L.map('map').setView([48.5, 11.5], 8);
+  // 🗺️ Karte erstellen
+  const map = L.map('map').setView([48.5, 11.5], 8);
 
-// 🌍 Base Map
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; OpenStreetMap'
-}).addTo(map);
+  // 🌍 Hintergrundkarte
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(map);
 
-// 📦 GeoJSON Gebiet
-fetch('gebiet.geojson')
-  .then(res => res.json())
-  .then(data => {
-    L.geoJSON(data, {
-      style: {
-        color: 'red',
-        weight: 2,
-        fillOpacity: 0.3
-      }
-    }).addTo(map);
-  });
+  // 📦 DEIN GEBIET (GeoJSON)
+  fetch('gebiet.geojson')
+    .then(res => res.json())
+    .then(data => {
+      L.geoJSON(data, {
+        style: {
+          color: 'red',
+          weight: 2,
+          fillOpacity: 0.3
+        }
+      }).addTo(map);
+    });
 
-// 🌬️ ECHTE WINDDATEN (Open-Meteo)
-fetch("https://api.open-meteo.com/v1/forecast?latitude=48.5&longitude=11.5&current=wind_speed_10m,wind_direction_10m")
-  .then(res => res.json())
-  .then(data => {
+  // 🌫️ „Wind-Test“ (sichtbares Overlay)
+  L.rectangle([[47, 10], [49, 12]], {
+    color: "blue",
+    weight: 1,
+    fillOpacity: 0.1
+  }).addTo(map);
 
-    const speed = data.current.wind_speed_10m;
-    const dir = data.current.wind_direction_10m;
-
-    L.marker([48.5, 11.5])
-      .addTo(map)
-      .bindPopup(
-        "🌬️ Wind aktuell:<br>" +
-        "Speed: " + speed + " km/h<br>" +
-        "Direction: " + dir + "°"
-      )
-      .openPopup();
-
-  })
-  .catch(err => console.error("Wind Fehler:", err));
+  console.log("Karte geladen ✔");
 
 </script>
+
+</body>
+</html>
