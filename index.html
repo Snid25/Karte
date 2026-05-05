@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Karte mit Gebiet</title>
+  <title>Karte mit Gebiet + Wind</title>
 
   <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -26,7 +26,7 @@
   // 🗺️ Karte erstellen
   const map = L.map('map').setView([48.5, 11.5], 8);
 
-  // 🌍 OpenStreetMap Hintergrund
+  // 🌍 Hintergrundkarte
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap'
   }).addTo(map);
@@ -44,6 +44,14 @@
       }).addTo(map);
     })
     .catch(err => console.error("GeoJSON Fehler:", err));
+
+  // 🌬️ WIND LAYER (kostenlos, ohne API-Key)
+  L.tileLayer(
+    "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+    {
+      opacity: 0.2
+    }
+  ).addTo(map);
 
 </script>
 
