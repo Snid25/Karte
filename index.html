@@ -40,6 +40,9 @@
         }
       }).addTo(map);
     });
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  opacity: 0.3
+}).addTo(map);
 const windLayer = L.tileLayer(
   "https://tile.open-meteo.com/v1/wind/{z}/{x}/{y}.png",
   {
@@ -66,6 +69,3 @@ fetch('gebiet.geojson')
     console.log("GeoJSON geladen:", data);
   })
   .catch(err => console.log("FEHLER:", err));
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  opacity: 0.3
-}).addTo(map);
