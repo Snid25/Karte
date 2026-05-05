@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Karte mit Gebiet</title>
+  <title>Karte mit Gebiet + Wind</title>
 
   <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -21,15 +21,15 @@
 <div id="map"></div>
 
 <script>
-  // 🗺️ Karte erstellen
+  // 🗺️ Karte starten
   const map = L.map('map').setView([48.5, 11.5], 8);
 
-  // 🌍 Hintergrundkarte (OpenStreetMap)
+  // 🌍 OpenStreetMap Hintergrund
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap'
   }).addTo(map);
 
-  // 📦 GeoJSON laden
+  // 📦 DEIN GEBIET (GeoJSON)
   fetch('gebiet.geojson')
     .then(res => res.json())
     .then(data => {
@@ -43,8 +43,15 @@
     })
     .catch(err => console.error("GeoJSON Fehler:", err));
 
-  // 🧪 TEST (zeigt, ob Code läuft)
-  console.log("Karte läuft");
+  // 🌬️ WIND TEST-LAYER (kostenlos, ohne API-Key)
+  L.tileLayer(
+    "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+      opacity: 0.25
+    }
+  ).addTo(map);
+
+  console.log("Karte geladen ✔");
 
 </script>
 
