@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Wind Karte (Windy Style)</title>
+  <title>Wind Karte</title>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -11,14 +11,6 @@
     #map {
       height: 100vh;
       width: 100%;
-    }
-
-    .wind-dot {
-      width: 6px;
-      height: 6px;
-      background: rgba(0, 150, 255, 0.8);
-      border-radius: 50%;
-      position: absolute;
     }
   </style>
 </head>
@@ -29,14 +21,14 @@
 
 <script>
 
-const map = L.map('map').setView([48.5, 11.5], 6);
+const map = L.map('map').setView([48.5, 11.5], 7);
 
 // 🗺️ Base Map
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; OpenStreetMap'
 }).addTo(map);
 
-// 📦 GeoJSON Gebiet
+// 📦 Gebiet
 fetch('gebiet.geojson')
   .then(res => res.json())
   .then(data => {
@@ -49,42 +41,40 @@ fetch('gebiet.geojson')
     }).addTo(map);
   });
 
-// 🌬️ Winddaten (einfaches Raster simuliert)
-fetch("https://api.open-meteo.com/v1/forecast?latitude=48.5&longitude=11.5&current=wind_speed_10m,wind_direction_10m")
-  .then(res => res.json())
-  .then(data => {
+// 🌬️ WIND GRID (mehrere Punkte = Wind sichtbar)
+const points = [];
 
-    const speed = data.current.wind_speed_10m;
-    const dir = data.current.wind_direction_10m;
+for (let lat = 48.0; lat <= 49.0; lat += 0.3) {
+  for (let lon = 11.0; lon <= 12.0; lon += 0.3) {
+    points.push([lat, lon]);
+  }
+}
 
-    // 🌪️ „Windfeld Simulation“ (wie Windy Look)
-    const grid = [];
+// 🌪️ Wind für jeden Punkt holen
+points.forEach(p => {
 
-    for (let lat = 48.0; lat <= 49.0; lat += 0.2) {
-      for (let lon = 11.0; lon <= 12.0; lon += 0.2) {
+  fetch(`https://api.open-meteo.com/v1/forecast?latitude=${p[0]}&longitude=${p[1]}&current=wind_speed_10m,wind_direction_10m`)
+    .then(res => res.json())
+    .then(data => {
 
-        const marker = L.circleMarker([lat, lon], {
-          radius: 3,
-          color: "deepskyblue",
-          fillOpacity: 0.7
-        }).addTo(map);
+      const speed = data.current.wind_speed_10m;
 
-        grid.push(marker);
+      const marker = L.circleMarker(p, {
+        radius: 4 + speed / 5,
+        color: "deepskyblue",
+        fillOpacity: 0.6
+      }).addTo(map);
 
-        // 🌬️ leichte Animation
-        let offset = Math.random() * 2000;
+      marker.bindPopup(
+        "🌬️ Wind:<br>" +
+        "Speed: " + speed + " km/h"
+      );
 
-        setInterval(() => {
-          const opacity = 0.3 + Math.random() * 0.7;
-          marker.setStyle({ fillOpacity: opacity });
-        }, 800 + offset);
+    });
 
-      }
-    }
+});
 
-  });
-
-console.log("Windy Clone läuft ✔");
+console.log("Wind Grid geladen ✔");
 
 </script>
 
