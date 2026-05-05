@@ -1,86 +1,15 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <title>Wind Karte</title>
-
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <style>
-    #map {
-      height: 100vh;
-      width: 100%;
-    }
-
-    .wind {
-      background: rgba(0, 150, 255, 0.6);
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-    }
-  </style>
-</head>
-
-<body>
-
-<div id="map"></div>
-
-<script>
+console.log("START OK");
 
 const map = L.map('map').setView([48.5, 11.5], 7);
 
-// 🗺️ Base Map
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; OpenStreetMap'
-}).addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-// 📦 Gebiet
-fetch('gebiet.geojson')
-  .then(res => res.json())
-  .then(data => {
-    L.geoJSON(data, {
-      style: {
-        color: 'red',
-        weight: 2,
-        fillOpacity: 0.2
-      }
-    }).addTo(map);
-  });
+// TEST: 10 Marker (müssen ALLE sichtbar sein)
+for (let i = 0; i < 10; i++) {
+  L.circleMarker([48.5 + i * 0.05, 11.5], {
+    radius: 6,
+    color: "blue"
+  }).addTo(map);
+}
 
-// 🌬️ EINZIGE zuverlässige Windquelle
-fetch("https://api.open-meteo.com/v1/forecast?latitude=48.5&longitude=11.5&current=wind_speed_10m,wind_direction_10m")
-  .then(res => res.json())
-  .then(data => {
-
-    const speed = data.current.wind_speed_10m;
-
-    // 🌪️ echtes „Windfeld Gefühl“ durch viele lokale Punkte (fake-grid, aber stabil)
-    const baseLat = 48.5;
-    const baseLon = 11.5;
-
-    for (let i = -3; i <= 3; i++) {
-      for (let j = -3; j <= 3; j++) {
-
-        const lat = baseLat + i * 0.15;
-        const lon = baseLon + j * 0.15;
-
-        const size = 3 + speed / 4;
-
-        L.circleMarker([lat, lon], {
-          radius: size,
-          color: "deepskyblue",
-          fillOpacity: 0.5
-        }).addTo(map);
-
-      }
-    }
-
-    console.log("Wind geladen ✔", speed);
-
-  });
-
-</script>
-
-</body>
-</html>
+console.log("MARKER LOOP FERTIG");
