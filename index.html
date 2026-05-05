@@ -1,56 +1,64 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Windkarte - Mein Gebiet</title>
+    <link rel="stylesheet" href="https://unpkg.com" />
+    <style>
+        #map { height: 600px; width: 100%; }
+        .wind-arrow { font-size: 24px; font-weight: bold; color: #007bff; text-shadow: 1px 1px 2px #000; }
+    </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com"></script>
 <script>
+    // 1. Karte initialisieren
+    const map = L.map('map').setView([51.1657, 10.4515], 6); // Standard Deutschland
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-const map = L.map('map').setView([48.5, 11.5], 7);
-
-// 🗺️ Base Map
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; OpenStreetMap'
-}).addTo(map);
-
-// 📦 DEIN GEBIET laden
-let areaLayer = null;
-
-fetch('gebiet.geojson')
-  .then(res => res.json())
-  .then(data => {
-
-    areaLayer = L.geoJSON(data, {
-      style: {
-        color: 'red',
-        weight: 2,
-        fillOpacity: 0.2
-      }
-    }).addTo(map);
-
-    // 🌬️ NUR innerhalb Gebiet Punkte erzeugen
-    const bounds = areaLayer.getBounds();
-
-    const speedBase = 5; // fallback
-
-    const markers = [];
-
-    for (let lat = bounds.getSouth(); lat < bounds.getNorth(); lat += 0.15) {
-      for (let lon = bounds.getWest(); lon < bounds.getEast(); lon += 0.15) {
-
-        const m = L.circleMarker([lat, lon], {
-          radius: 4,
-          color: "deepskyblue",
-          fillOpacity: 0.5
-        }).addTo(map);
-
-        markers.push(m);
-      }
+    // 2. Funktion zum Abrufen der Winddaten von Open-Meteo
+    async function getWindData(lat, lon) {
+        const url = `https://open-meteo.com{lat}&longitude=${lon}&current=wind_speed_10m,wind_direction_10m`;
+        const response = await fetch(url);
+        const data = await response.json();
+        return data.current;
     }
 
-    // 🌬️ Animation = „Windgefühl“
-    setInterval(() => {
-      markers.forEach(m => {
-        m.setStyle({
-          fillOpacity: 0.3 + Math.random() * 0.5
+    // 3. Deine gebiet.geojson laden und verarbeiten
+    fetch('gebiet.geojson')
+        .then(res => res.json())
+        .then(async geojson => {
+            const layer = L.geoJSON(geojson).addTo(map);
+            map.fitBounds(layer.getBounds()); // Zoomt automatisch auf dein Gebiet
+
+            // Für jeden Punkt im GeoJSON Winddaten abrufen
+            geojson.features.forEach(async (feature) => {
+                let coords;
+                if (feature.geometry.type === "Point") {
+                    coords = feature.geometry.coordinates;
+                } else {
+                    // Falls es ein Polygon ist, nimm den Mittelpunkt (vereinfacht)
+                    coords = L.geoJSON(feature).getBounds().getCenter();
+                    coords = [coords.lng, coords.lat];
+                }
+
+                const wind = await getWindData(coords[1], coords[0]);
+
+                // Marker mit rotierendem Pfeil hinzufügen
+                const windIcon = L.divIcon({
+                    className: 'wind-arrow',
+                    html: `<div style="transform: rotate(${wind.wind_direction_10m}deg)">↑</div>`,
+                    iconSize: [30, 30]
+                });
+
+                L.marker([coords[1], coords[0]], { icon: windIcon })
+                    .bindPopup(`<b>Wind:</b> ${wind.wind_speed_10m} km/h<br><b>Richtung:</b> ${wind.wind_direction_10m}°`)
+                    .addTo(map);
+            });
         });
-      });
-    }, 600);
-
-  });
-
 </script>
+</body>
+</html>
