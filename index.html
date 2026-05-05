@@ -1,84 +1,56 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <title>Wind Karte (Windy Style)</title>
-
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <style>
-    #map {
-      height: 100vh;
-      width: 100%;
-    }
-  </style>
-</head>
-
-<body>
-
-<div id="map"></div>
-
 <script>
 
-console.log("Karte geladen ✔");
-
-// 🗺️ Karte
 const map = L.map('map').setView([48.5, 11.5], 7);
 
-// 🌍 Hintergrund
+// 🗺️ Base Map
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; OpenStreetMap'
 }).addTo(map);
 
-// 📦 GeoJSON Gebiet
+// 📦 DEIN GEBIET laden
+let areaLayer = null;
+
 fetch('gebiet.geojson')
   .then(res => res.json())
   .then(data => {
-    L.geoJSON(data, {
+
+    areaLayer = L.geoJSON(data, {
       style: {
         color: 'red',
         weight: 2,
-        fillOpacity: 0.25
+        fillOpacity: 0.2
       }
     }).addTo(map);
-  });
 
-// 🌬️ WIND (stabile Windsimulation wie Windy)
-fetch("https://api.open-meteo.com/v1/forecast?latitude=48.5&longitude=11.5&current=wind_speed_10m")
-  .then(res => res.json())
-  .then(data => {
+    // 🌬️ NUR innerhalb Gebiet Punkte erzeugen
+    const bounds = areaLayer.getBounds();
 
-    const speed = data.current.wind_speed_10m;
+    const speedBase = 5; // fallback
 
     const markers = [];
 
-    // 🌪️ Windfeld Grid
-    for (let lat = 48.0; lat <= 49.0; lat += 0.2) {
-      for (let lon = 11.0; lon <= 12.0; lon += 0.2) {
+    for (let lat = bounds.getSouth(); lat < bounds.getNorth(); lat += 0.15) {
+      for (let lon = bounds.getWest(); lon < bounds.getEast(); lon += 0.15) {
 
         const m = L.circleMarker([lat, lon], {
-          radius: 3 + speed / 4,
+          radius: 4,
           color: "deepskyblue",
           fillOpacity: 0.5
         }).addTo(map);
 
         markers.push(m);
-
       }
     }
 
-    // 🌬️ Animation (Windbewegung simuliert)
+    // 🌬️ Animation = „Windgefühl“
     setInterval(() => {
       markers.forEach(m => {
-        const a = 0.3 + Math.random() * 0.6;
-        m.setStyle({ fillOpacity: a });
+        m.setStyle({
+          fillOpacity: 0.3 + Math.random() * 0.5
+        });
       });
     }, 600);
 
   });
 
 </script>
-
-</body>
-</html>
