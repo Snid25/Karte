@@ -4,7 +4,6 @@
   <meta charset="utf-8" />
   <title>Karte mit Gebiet + Wind</title>
 
-  <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -22,49 +21,54 @@
 
 <script>
 
-  // 🗺️ Karte starten
-  const map = L.map('map').setView([48.5, 11.5], 8);
+const map = L.map('map').setView([48.5, 11.5], 8);
 
-  // 🌍 Hintergrundkarte
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap'
-  }).addTo(map);
+// 🗺️ Base Map
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap'
+}).addTo(map);
 
-  // 📦 DEIN GEBIET (GeoJSON)
-  fetch('gebiet.geojson')
-    .then(res => res.json())
-    .then(data => {
-      L.geoJSON(data, {
-        style: {
-          color: 'red',
-          weight: 2,
-          fillOpacity: 0.3
-        }
-      }).addTo(map);
-    })
-    .catch(err => console.error("GeoJSON Fehler:", err));
+// 📦 GeoJSON Gebiet
+fetch('gebiet.geojson')
+  .then(res => res.json())
+  .then(data => {
+    L.geoJSON(data, {
+      style: {
+        color: 'red',
+        weight: 2,
+        fillOpacity: 0.3
+      }
+    }).addTo(map);
+  });
 
-  // 🌬️ ECHTER WIND (Open-Meteo)
-  fetch("https://api.open-meteo.com/v1/forecast?latitude=48.5&longitude=11.5&current=wind_speed_10m,wind_direction_10m")
-    .then(res => res.json())
-    .then(data => {
+// 🌬️ WIND (Open-Meteo)
+fetch("https://api.open-meteo.com/v1/forecast?latitude=48.5&longitude=11.5&current=wind_speed_10m,wind_direction_10m")
+  .then(res => res.json())
+  .then(data => {
 
-      const speed = data.current.wind_speed_10m;
-      const dir = data.current.wind_direction_10m;
+    const speed = data.current.wind_speed_10m;
+    const dir = data.current.wind_direction_10m;
 
-      L.marker([48.5, 11.5])
-        .addTo(map)
-        .bindPopup(
-          "🌬️ Wind aktuell:<br>" +
-          "Speed: " + speed + " km/h<br>" +
-          "Direction: " + dir + "°"
-        )
-        .openPopup();
+    // 📍 Mittelpunkt Marker
+    const point = [48.5, 11.5];
 
-    })
-    .catch(err => console.error("Wind Fehler:", err));
+    // 🌬️ Pfeil (einfacher visueller Wind)
+    const arrow = L.circleMarker(point, {
+      radius: 10,
+      color: "blue",
+      fillOpacity: 0.5
+    }).addTo(map);
 
-  console.log("Karte geladen ✔");
+    arrow.bindPopup(
+      "🌬️ Wind:<br>" +
+      "Speed: " + speed + " km/h<br>" +
+      "Direction: " + dir + "°"
+    ).openPopup();
+
+  })
+  .catch(err => console.error("Wind Fehler:", err));
+
+console.log("Karte geladen ✔");
 
 </script>
 
