@@ -1,15 +1,84 @@
-console.log("START OK");
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Wind Karte (Windy Style)</title>
 
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    #map {
+      height: 100vh;
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="map"></div>
+
+<script>
+
+console.log("Karte geladen ✔");
+
+// 🗺️ Karte
 const map = L.map('map').setView([48.5, 11.5], 7);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+// 🌍 Hintergrund
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap'
+}).addTo(map);
 
-// TEST: 10 Marker (müssen ALLE sichtbar sein)
-for (let i = 0; i < 10; i++) {
-  L.circleMarker([48.5 + i * 0.05, 11.5], {
-    radius: 6,
-    color: "blue"
-  }).addTo(map);
-}
+// 📦 GeoJSON Gebiet
+fetch('gebiet.geojson')
+  .then(res => res.json())
+  .then(data => {
+    L.geoJSON(data, {
+      style: {
+        color: 'red',
+        weight: 2,
+        fillOpacity: 0.25
+      }
+    }).addTo(map);
+  });
 
-console.log("MARKER LOOP FERTIG");
+// 🌬️ WIND (stabile Windsimulation wie Windy)
+fetch("https://api.open-meteo.com/v1/forecast?latitude=48.5&longitude=11.5&current=wind_speed_10m")
+  .then(res => res.json())
+  .then(data => {
+
+    const speed = data.current.wind_speed_10m;
+
+    const markers = [];
+
+    // 🌪️ Windfeld Grid
+    for (let lat = 48.0; lat <= 49.0; lat += 0.2) {
+      for (let lon = 11.0; lon <= 12.0; lon += 0.2) {
+
+        const m = L.circleMarker([lat, lon], {
+          radius: 3 + speed / 4,
+          color: "deepskyblue",
+          fillOpacity: 0.5
+        }).addTo(map);
+
+        markers.push(m);
+
+      }
+    }
+
+    // 🌬️ Animation (Windbewegung simuliert)
+    setInterval(() => {
+      markers.forEach(m => {
+        const a = 0.3 + Math.random() * 0.6;
+        m.setStyle({ fillOpacity: a });
+      });
+    }, 600);
+
+  });
+
+</script>
+
+</body>
+</html>
